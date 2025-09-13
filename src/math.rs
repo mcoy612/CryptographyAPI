@@ -1,5 +1,3 @@
-use std::ops::{Add, Sub, Mul, Div};
-
 static AES_IRREDUCIBLE_POLYNOMIAL: u16 = 0b_1_0001_1011;
 
 /// Description:
