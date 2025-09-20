@@ -1,3 +1,8 @@
+mod utility;
+mod math;
+
+use utility::generate_s_box;
+
 fn main() {
-    println!("Hello, world!");
+    generate_s_box();
 }
