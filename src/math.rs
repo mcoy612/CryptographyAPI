@@ -38,6 +38,7 @@ pub fn byte_multiplication(a: u8, b: u8) -> u8 {
 ///
 /// Returns:
 /// floor of a/b
+#[allow(dead_code)]
 pub fn byte_quotient(a: u16, b: u16) -> u16 {
     assert!(b != 0, "Can't divide by 0");
 
@@ -97,6 +98,8 @@ pub fn byte_remainder(a: u16, b: u16) -> u16 {
 ///
 /// Returns:
 /// A * b
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 pub fn byte_matrix_multiplication(A: &[[u8; 4]; 4], b: &[u8; 4]) -> [u8; 4] {
     let mut res: [u8; 4] = [0; 4];
     for i in 0..4 {
@@ -121,6 +124,7 @@ pub fn byte_matrix_multiplication(A: &[[u8; 4]; 4], b: &[u8; 4]) -> [u8; 4] {
 ///
 /// Returns:
 /// The inverse of a.
+#[allow(dead_code)]
 pub fn byte_inverse(a: u8) -> u8 {
     assert!(a != 0, "0 does not have an inverse");
 
@@ -149,6 +153,16 @@ pub fn byte_inverse(a: u8) -> u8 {
     v
 }
 
+/// Description:
+/// Shifts a byte to the left in a circular manner (rather than << which cuts it off)
+///
+/// Arguments:
+/// a - (I,REQ) - byte to shift
+/// shift - (I,REQ) - offset to shift by
+///
+/// Returns:
+/// shifted byte
+#[allow(dead_code)]
 pub fn circular_left_bit_shift(a: u8, shift: u8) -> u8 {
     let shift = shift % 8;
     (a << shift) ^ (a >> 8-shift)

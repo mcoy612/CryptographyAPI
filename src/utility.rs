@@ -1,4 +1,3 @@
-use crate::math;
 use crate::math::{byte_inverse,circular_left_bit_shift};
 
 use std::io::{self, Write};
