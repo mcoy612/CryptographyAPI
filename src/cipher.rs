@@ -1,10 +1,10 @@
 use crate::math::{byte_matrix_multiplication};
 use crate::util::{rot_word,sub_word};
-use crate::util::{RCON,SBOX};
+use crate::util::{RCON,SBOX,INV_SBOX};
 
 #[allow(non_snake_case)]
-pub fn AES_encyrpt(state: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
-    let mut state = state;
+pub fn AES_encyrpt(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+    let mut state = plain_text;
     let key_schedule = key_expansion(key);
 
     add_round_key(&mut state, key_schedule[0]);
@@ -16,14 +16,28 @@ pub fn AES_encyrpt(state: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     }
     sub_bytes(&mut state);
     shift_rows(&mut state);
-    mix_columns(&mut state);
+    add_round_key(&mut state, key_schedule[14]);
 
     state
 }
 
 #[allow(non_snake_case)]
-pub fn AES_decrypt() {
-    unimplemented!();
+pub fn AES_decrypt(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+    let mut state = cipher_text;
+    let key_schedule = key_expansion(key);
+
+    add_round_key(&mut state, key_schedule[14]);
+    inv_shift_rows(&mut state);
+    inv_sub_bytes(&mut state);
+    for i in (1..14).rev() {
+        add_round_key(&mut state, key_schedule[i]);
+        inv_mix_columns(&mut state);
+        inv_shift_rows(&mut state);
+        inv_sub_bytes(&mut state);
+    }
+    add_round_key(&mut state, key_schedule[0]);
+
+    state
 }
 
 fn key_expansion(key: [u32; 8]) -> [[[u8; 4]; 4]; 15] {
@@ -42,11 +56,11 @@ fn key_expansion(key: [u32; 8]) -> [[[u8; 4]; 4]; 15] {
         }
     }
 
-    let mut key_schedule: [[[u8; 4]; 4]; 15]  = [[[0; 4]; 4]; 15] ;
-    for key in 0..15 {
-        for i in 0..4 {
-            for j in 0..4 {
-                key_schedule[key][i][j] = ((words[4*key] + i as u32 >> 8*j) & 0b_1111_1111) as u8;
+    let mut key_schedule: [[[u8; 4]; 4]; 15]  = [[[0; 4]; 4]; 15];
+    for round in 0..15 {
+        for j in 0..4 {
+            for i in 0..4 {
+                key_schedule[round][i][j] = ((words[4*round+j] >> (8*(3-i))) & 0b_1111_1111) as u8;
             }
         }
     }
@@ -58,6 +72,14 @@ fn sub_bytes(state: &mut [[u8; 4]; 4]) {
    for row in state {
         for byte in row {
             *byte = SBOX[*byte as usize];
+        }
+   }
+}
+
+fn inv_sub_bytes(state: &mut [[u8; 4]; 4]) {
+   for row in state {
+        for byte in row {
+            *byte = INV_SBOX[*byte as usize];
         }
    }
 }
@@ -89,12 +111,59 @@ fn shift_rows(state: &mut [[u8; 4]; 4]) {
     state[3][1] = temp;
 }
 
+fn inv_shift_rows(state: &mut [[u8; 4]; 4]) {
+    // Row 1
+    // Nothing
+
+    // Row 2
+    let temp = state[1][0];
+    state[1][0] = state[1][3];
+    state[1][3] = state[1][2];
+    state[1][2] = state[1][1];
+    state[1][1] = temp;
+
+    // Row 3
+    let temp = state[2][0];
+    state[2][0] = state[2][2];
+    state[2][2] = temp;
+    let temp = state[2][1];
+    state[2][1] = state[2][3];
+    state[2][3] = temp;
+
+    // Row 4
+    let temp = state[3][0];
+    state[3][0] = state[3][1];
+    state[3][1] = state[3][2];
+    state[3][2] = state[3][3];
+    state[3][3] = temp;
+}
+
 fn mix_columns(state: &mut [[u8; 4]; 4]) {
     let transform:[[u8; 4]; 4] = [
         [2, 3, 1, 1],
         [1, 2, 3, 1],
         [1, 1, 2, 3],
         [3, 1, 1, 2],
+    ];
+
+    for j in 0..4 {
+        let mut col: [u8; 4] = [0; 4];
+        for i in 0..4 {
+            col[i] = state[i][j];
+        }
+        let res = byte_matrix_multiplication(&transform, &col);
+        for i in 0..4 {
+            state[i][j] = res[i];
+        }
+    }
+}
+
+fn inv_mix_columns(state: &mut [[u8; 4]; 4]) {
+    let transform:[[u8; 4]; 4] = [
+        [14, 11, 13, 9],
+        [9, 14, 11, 13],
+        [13, 9, 14, 11],
+        [11, 13, 9, 14],
     ];
 
     for j in 0..4 {
@@ -141,6 +210,11 @@ mod tests {
     }
 
     #[test]
+    fn inv_sub_bytes_test() {
+        unimplemented!();
+    }
+
+    #[test]
     fn shift_rows_test() {
         let mut res: [[u8; 4]; 4] = [
             [1,2,3,4],
@@ -159,21 +233,31 @@ mod tests {
     }
 
     #[test]
+    fn inv_shift_rows_test() {
+        unimplemented!();
+    }
+
+    #[test]
     fn mix_columns_test() {
         let mut res: [[u8; 4]; 4] = [
-            [1,2,3,4],
-            [5,6,7,8],
-            [9,10,11,12],
-            [13,14,15,16]
+            [0x63,0xF2,0x01,0xC6],
+            [0x47,0x0A,0x01,0xC6],
+            [0xA2,0x22,0x01,0xC6],
+            [0xF0,0x5C,0x01,0xC6]
         ];
         mix_columns(&mut res);
         let actual: [[u8; 4]; 4] = [
-            [1,2,3,4],
-            [6,7,8,5],
-            [11,12,9,10],
-            [16,13,14,15]
+            [0x5D,0x9F,0x01,0xC6],
+            [0xE0,0xDC,0x01,0xC6],
+            [0x70,0x58,0x01,0xC6],
+            [0xBB,0x9D,0x01,0xC6]
         ];
         assert_eq!(res,actual);
+    }
+
+    #[test]
+    fn inv_mix_columns_test() {
+        unimplemented!();
     }
 
     #[test]
