@@ -11,7 +11,6 @@ pub const INV_SBOX: [u8; 256] = [0x52, 0x9, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 
 #[allow(dead_code)]
 pub fn generate_s_box() -> [u8; 256] {
     let mut sbox: [u8; 256] = [0; 256];
-    let inverse = 0;
     sbox[0] = 0x63;
     for i in 1..=255 {
         let inverse = byte_inverse(i);
