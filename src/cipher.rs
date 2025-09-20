@@ -3,7 +3,7 @@ use crate::util::{rot_word,sub_word};
 use crate::util::{RCON,SBOX,INV_SBOX};
 
 #[allow(non_snake_case)]
-pub fn AES_encyrpt(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+pub fn AES_encrypt(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     let mut state = plain_text;
     let key_schedule = key_expansion(key);
 
