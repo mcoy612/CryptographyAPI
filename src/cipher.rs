@@ -10,8 +10,12 @@ pub fn AES_decrypt() {
     unimplemented!();
 }
 
-fn sub_bytes(state: [[u8; 4]; 4]) {
-    unimplemented!();
+fn sub_bytes(state: &mut [[u8; 4]; 4]) {
+   for row in state {
+        for byte in row {
+            *byte = SBOX[*byte as usize];
+        }
+   }
 }
 
 fn shift_rows(state: &mut [[u8; 4]; 4]) {
@@ -75,38 +79,56 @@ mod tests {
     use super::*;
 
     #[test]
+    fn sub_bytes_test() {
+        let mut res: [[u8; 4]; 4] = [
+            [0x00,0x01,0x02,0x03],
+            [0x04,0x05,0x06,0x07],
+            [0x08,0x09,0x0A,0x0B],
+            [0x0C,0x0D,0x0E,0x0F]
+        ];
+        sub_bytes(&mut res);
+        let actual: [[u8; 4]; 4] = [
+            [0x63,0x7C,0x77,0x7B],
+            [0xF2,0x6B,0x6F,0xC5],
+            [0x30,0x01,0x67,0x2B],
+            [0xFE,0xD7,0xAB,0x76]
+        ];
+        assert_eq!(res,actual);     
+    }
+
+    #[test]
     fn shift_rows_test() {
-        let mut state: [[u8; 4]; 4] = [
+        let mut res: [[u8; 4]; 4] = [
             [1,2,3,4],
             [5,6,7,8],
             [9,10,11,12],
             [13,14,15,16]
         ];
-        shift_rows(&mut state);
-        let mut res: [[u8; 4]; 4] = [
+        shift_rows(&mut res);
+        let actual: [[u8; 4]; 4] = [
             [1,2,3,4],
             [6,7,8,5],
             [11,12,9,10],
             [16,13,14,15]
         ];
-        assert_eq!(state,res);
+        assert_eq!(res,actual);
     }
 
     #[test]
     fn mix_columns_test() {
-        let mut state: [[u8; 4]; 4] = [
+        let mut res: [[u8; 4]; 4] = [
             [1,2,3,4],
             [5,6,7,8],
             [9,10,11,12],
             [13,14,15,16]
         ];
-        mix_columns(&mut state);
-        let mut res: [[u8; 4]; 4] = [
+        mix_columns(&mut res);
+        let actual: [[u8; 4]; 4] = [
             [1,2,3,4],
             [6,7,8,5],
             [11,12,9,10],
             [16,13,14,15]
         ];
-        assert_eq!(state,res);
+        assert_eq!(res,actual);
     }
 }
