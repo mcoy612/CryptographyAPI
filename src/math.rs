@@ -153,21 +153,6 @@ pub fn byte_inverse(a: u8) -> u8 {
     v
 }
 
-/// Description:
-/// Shifts a byte to the left in a circular manner (rather than << which cuts it off)
-///
-/// Arguments:
-/// a - (I,REQ) - byte to shift
-/// shift - (I,REQ) - offset to shift by
-///
-/// Returns:
-/// shifted byte
-#[allow(dead_code)]
-pub fn circular_left_bit_shift(a: u8, shift: u8) -> u8 {
-    let shift = shift % 8;
-    (a << shift) ^ (a >> 8-shift)
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -234,21 +219,6 @@ mod tests {
         let a: u8 = 0b_110_1100;
         let res = byte_inverse(a);
         let actual = 0b_11_0011;
-        assert_eq!(res, actual);
-    }
-
-    #[test]
-    fn circular_left_bit_shift_test() {
-        let a: u8 = 0b_0011_1011;
-        let shift = 3;
-        let res = circular_left_bit_shift(a,shift);
-        let actual = 0b_1101_1001;
-        assert_eq!(res, actual);
-
-        let a: u8 = 0b_0011_1011;
-        let shift = 1;
-        let res = circular_left_bit_shift(a,shift);
-        let actual = 0b_0111_0110;
         assert_eq!(res, actual);
     }
 }
