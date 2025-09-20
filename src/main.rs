@@ -1,8 +1,8 @@
-mod utility;
+mod util;
 mod math;
 
-use utility::generate_s_box;
+use util::generate_r_con;
 
 fn main() {
-    generate_s_box();
+    generate_r_con();
 }
