@@ -211,7 +211,20 @@ mod tests {
 
     #[test]
     fn inv_sub_bytes_test() {
-        unimplemented!();
+        let mut res: [[u8; 4]; 4] = [
+            [0x63,0x7C,0x77,0x7B],
+            [0xF2,0x6B,0x6F,0xC5],
+            [0x30,0x01,0x67,0x2B],
+            [0xFE,0xD7,0xAB,0x76]
+        ];
+        inv_sub_bytes(&mut res);
+        let actual: [[u8; 4]; 4] = [
+            [0x00,0x01,0x02,0x03],
+            [0x04,0x05,0x06,0x07],
+            [0x08,0x09,0x0A,0x0B],
+            [0x0C,0x0D,0x0E,0x0F]
+        ];
+        assert_eq!(res,actual);     
     }
 
     #[test]
@@ -234,7 +247,20 @@ mod tests {
 
     #[test]
     fn inv_shift_rows_test() {
-        unimplemented!();
+        let mut res: [[u8; 4]; 4] = [
+            [1,2,3,4],
+            [6,7,8,5],
+            [11,12,9,10],
+            [16,13,14,15]
+        ];
+        inv_shift_rows(&mut res);
+        let actual: [[u8; 4]; 4] = [
+            [1,2,3,4],
+            [5,6,7,8],
+            [9,10,11,12],
+            [13,14,15,16]
+        ];
+        assert_eq!(res,actual);
     }
 
     #[test]
@@ -257,7 +283,20 @@ mod tests {
 
     #[test]
     fn inv_mix_columns_test() {
-        unimplemented!();
+        let mut res: [[u8; 4]; 4] = [
+            [0x5D,0x9F,0x01,0xC6],
+            [0xE0,0xDC,0x01,0xC6],
+            [0x70,0x58,0x01,0xC6],
+            [0xBB,0x9D,0x01,0xC6]
+        ];
+        inv_mix_columns(&mut res);
+        let actual: [[u8; 4]; 4] = [
+            [0x63,0xF2,0x01,0xC6],
+            [0x47,0x0A,0x01,0xC6],
+            [0xA2,0x22,0x01,0xC6],
+            [0xF0,0x5C,0x01,0xC6]
+        ];
+        assert_eq!(res,actual);
     }
 
     #[test]
