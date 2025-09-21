@@ -1,9 +1,42 @@
+use crate::padding::{PKCS7_padding,PKCS7_unpadding};
 use crate::math::{byte_matrix_multiplication};
-use crate::util::{rot_word,sub_word};
+use crate::util::{block_to_message,message_to_block,rot_word,sub_word};
 use crate::util::{RCON,SBOX,INV_SBOX};
 
 #[allow(non_snake_case)]
-pub fn AES_encrypt(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+pub fn AES_encrypt(plain_text: String, key: [u32; 8]) -> String {
+    let plain_text = PKCS7_padding(plain_text);
+    let n = plain_text.len()/2;
+
+    let mut cipher_text = String::with_capacity(2*n);
+    for i in 0..n/16 {
+        let message = &plain_text[32*i..(32*(i+1))];
+        let message_block = message_to_block(message);
+        let encrypted_block = AES_encrypt_block(message_block, key);
+        let encrypted_text = block_to_message(encrypted_block);
+        cipher_text.push_str(&encrypted_text);
+    }
+
+    cipher_text
+}
+
+pub fn AES_decrypt(cipher_text: String, key: [u32; 8]) -> String {
+    let n = cipher_text.len()/2;
+
+    let mut plain_text = String::with_capacity(2*n);
+    for i in 0..n/16 {
+        let message = &cipher_text[32*i..(32*(i+1))];
+        let message_block = message_to_block(message);
+        let encrypted_block = AES_decrypt_block(message_block, key);
+        let encrypted_text = block_to_message(encrypted_block);
+        plain_text.push_str(&encrypted_text);
+    }
+
+    PKCS7_unpadding(plain_text)
+}
+
+#[allow(non_snake_case)]
+pub fn AES_encrypt_block(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     let mut state = plain_text;
     let key_schedule = key_expansion(key);
 
@@ -22,7 +55,7 @@ pub fn AES_encrypt(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
 }
 
 #[allow(non_snake_case)]
-pub fn AES_decrypt(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+pub fn AES_decrypt_block(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     let mut state = cipher_text;
     let key_schedule = key_expansion(key);
 
