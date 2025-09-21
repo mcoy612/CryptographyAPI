@@ -131,9 +131,9 @@ mod tests {
 
     #[test]
     fn rot_word_test() {
-        let a: u32 = 0b_1001_1101_0010_0000_0010_1111_0101_0111;
+        let a: u32 = 0x_3F_C2_09_44;
         let res = rot_word(a);
-        let actual = 0b_0010_0000_0010_1111_0101_0111_1001_1101;
+        let actual = 0x_C2_09_44_3F;
         assert_eq!(res, actual)
     }
 

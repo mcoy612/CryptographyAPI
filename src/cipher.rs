@@ -20,6 +20,7 @@ pub fn AES_encrypt(plain_text: String, key: [u32; 8]) -> String {
     cipher_text
 }
 
+#[allow(non_snake_case)]
 pub fn AES_decrypt(cipher_text: String, key: [u32; 8]) -> String {
     let n = cipher_text.len()/2;
 
@@ -81,7 +82,7 @@ fn key_expansion(key: [u32; 8]) -> [[[u8; 4]; 4]; 15] {
         if i < n {
             words[i] = key[i]
         } else if i >= n && i % n == 0 {
-            words[i] = words[i-n] ^ sub_word(rot_word(words[i-1])) ^ RCON[i/n];
+            words[i] = words[i-n] ^ sub_word(rot_word(words[i-1])) ^ RCON[i/n - 1];
         } else if i >= n && n > 6 && i % n == 4 {
             words[i] = words[i-n] ^ sub_word(words[i-1]);
         } else {

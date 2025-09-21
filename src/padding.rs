@@ -32,7 +32,7 @@ pub fn PKCS7_padding(text: String) -> String {
 pub fn PKCS7_unpadding(text: String) -> String {
     let n = text.len();
     let padding = usize::from_str_radix(&text[(n-2)..],16).unwrap();
-    
+
     text[0..(n-padding*2)].to_string()
 }
 
@@ -41,6 +41,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(non_snake_case)]
     fn PKCS7_padding_test() {
         let s = String::from("003F24F5G2570592A45EEA");
         let res = PKCS7_padding(s);
@@ -54,6 +55,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(non_snake_case)]
     fn PKCS7_unpadding_test() {
         let s = String::from("003F24F5G2570592A45EEA0505050505");
         let res = PKCS7_unpadding(s);
