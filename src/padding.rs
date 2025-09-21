@@ -2,22 +2,38 @@
 /// Does PKCS7 padding to a multiple of 16.
 ///
 /// Arguments:
-/// plain_text - (I,REQ) - A string of hexadecimals where each digit is padded to length 2
+/// text - (I,REQ) - A string of hexadecimals where each digit is padded to length 2
 ///
 /// Returns:
-/// The padded plain text
+/// The unpadded text
 #[allow(non_snake_case)]
-pub fn PKCS7_padding(plain_text: String) -> String {
-    let n = plain_text.len()/2;
-    let empty = 16 - n % 16;
-    let empty_str = format!("{:02x}", empty);
-    let mut padded = String::with_capacity((n+empty)*2);
-    padded.push_str(&plain_text);
-    for _ in 0..empty {
-        padded.push_str(&empty_str);
+pub fn PKCS7_padding(text: String) -> String {
+    let n = text.len()/2;
+    let padding = 16 - n % 16;
+    let pad_str = format!("{:02x}", padding);
+    let mut padded_string = String::with_capacity((n+padding)*2);
+    padded_string.push_str(&text);
+    for _ in 0..padding {
+        padded_string.push_str(&pad_str);
     }
 
-    padded
+    padded_string
+}
+
+/// Description:
+/// Unpads a string padded to a multiple of 16 with PKCS7.
+///
+/// Arguments:
+/// text - (I,REQ) - A padded string of hexadecimals where each digit is padded to length 2
+///
+/// Returns:
+/// The unpadded text
+#[allow(non_snake_case)]
+pub fn PKCS7_unpadding(text: String) -> String {
+    let n = text.len();
+    let padding = usize::from_str_radix(&text[(n-2)..],16).unwrap();
+    
+    text[0..(n-padding*2)].to_string()
 }
 
 #[cfg(test)]
@@ -34,6 +50,19 @@ mod tests {
         let s = String::from("003F24F5G2570592A45EEA0505050505");
         let res = PKCS7_padding(s);
         let actual = String::from("003F24F5G2570592A45EEA050505050510101010101010101010101010101010");
+        assert_eq!(res, actual);
+    }
+
+    #[test]
+    fn PKCS7_unpadding_test() {
+        let s = String::from("003F24F5G2570592A45EEA0505050505");
+        let res = PKCS7_unpadding(s);
+        let actual = String::from("003F24F5G2570592A45EEA");
+        assert_eq!(res, actual);
+
+        let s = String::from("003F24F5G2570592A45EEA050505050510101010101010101010101010101010");
+        let res = PKCS7_unpadding(s);
+        let actual = String::from("003F24F5G2570592A45EEA0505050505");
         assert_eq!(res, actual);
     }
 }
