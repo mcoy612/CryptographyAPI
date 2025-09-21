@@ -37,7 +37,7 @@ pub fn AES_decrypt(cipher_text: String, key: [u32; 8]) -> String {
 }
 
 #[allow(non_snake_case)]
-pub fn AES_encrypt_block(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+fn AES_encrypt_block(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     let mut state = plain_text;
     let key_schedule = key_expansion(key);
 
@@ -56,7 +56,7 @@ pub fn AES_encrypt_block(plain_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4
 }
 
 #[allow(non_snake_case)]
-pub fn AES_decrypt_block(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
+fn AES_decrypt_block(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 4] {
     let mut state = cipher_text;
     let key_schedule = key_expansion(key);
 
@@ -74,16 +74,16 @@ pub fn AES_decrypt_block(cipher_text: [[u8; 4]; 4], key: [u32; 8]) -> [[u8; 4]; 
     state
 }
 
-fn key_expansion(key: [u32; 8]) -> [[[u8; 4]; 4]; 15] {
+pub fn key_expansion(key: [u32; 8]) -> [[[u8; 4]; 4]; 15] {
     let mut words: [u32; 60] = [0; 60];
     let n = 8;
 
     for i in 0..60 {
         if i < n {
             words[i] = key[i]
-        } else if i >= n && i % n == 0 {
+        } else if i % n == 0 {
             words[i] = words[i-n] ^ sub_word(rot_word(words[i-1])) ^ RCON[i/n - 1];
-        } else if i >= n && n > 6 && i % n == 4 {
+        } else if n > 6 && i % n == 4 {
             words[i] = words[i-n] ^ sub_word(words[i-1]);
         } else {
             words[i] = words[i-n] ^ words[i-1];
@@ -226,6 +226,59 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(non_snake_case)]
+    fn AES_encrypt_block_test() {
+        let state = [
+            [0x6b, 0x2e, 0xe9, 0x73],
+            [0xc1, 0x40, 0x3d, 0x93],
+            [0xbe, 0x9f, 0x7e, 0x17],
+            [0xe2, 0x96, 0x11, 0x2a],
+        ];
+        let key: [u32; 8] = [0x603deb10, 0x15ca71be, 0x2b73aef0, 0x857d7781, 0x1f352c07, 0x3b6108d7, 0x2d9810a3, 0x0914dff4];
+        let res = AES_encrypt_block(state, key);
+        let actual = [
+            [0xf3, 0xb5, 0x06, 0x3d],
+            [0xee, 0xd2, 0x4b, 0xb1],
+            [0xd1, 0xa0, 0x5a, 0x81],
+            [0xbd, 0x3c, 0x7e, 0xf8],
+        ];
+        assert_eq!(res, actual)
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn AES_decrypt_block_test() {
+        let state = [
+            [0xf3, 0xb5, 0x06, 0x3d],
+            [0xee, 0xd2, 0x4b, 0xb1],
+            [0xd1, 0xa0, 0x5a, 0x81],
+            [0xbd, 0x3c, 0x7e, 0xf8],
+        ];
+        let key: [u32; 8] = [0x603deb10, 0x15ca71be, 0x2b73aef0, 0x857d7781, 0x1f352c07, 0x3b6108d7, 0x2d9810a3, 0x0914dff4];
+        let res = AES_decrypt_block(state, key);
+        let actual = [
+            [0x6b, 0x2e, 0xe9, 0x73],
+            [0xc1, 0x40, 0x3d, 0x93],
+            [0xbe, 0x9f, 0x7e, 0x17],
+            [0xe2, 0x96, 0x11, 0x2a],
+        ];
+        assert_eq!(res, actual)
+    }
+
+    #[test]
+    fn key_expansion_test() {
+        let key: [u32; 8] = [0x603deb10, 0x15ca71be, 0x2b73aef0, 0x857d7781, 0x1f352c07, 0x3b6108d7, 0x2d9810a3, 0x0914dff4];
+        let res = key_expansion(key)[14];
+        let actual: [[u8; 4]; 4] = [
+            [0xfe, 0xe6, 0x04, 0x70],
+            [0x48, 0x18, 0x6d, 0x6c],
+            [0x90, 0x8d, 0xf3, 0x63],
+            [0xd1, 0x0b, 0x44, 0x1e]
+        ];
+        assert_eq!(res, actual);
+    }
+
+    #[test]
     fn sub_bytes_test() {
         let mut res: [[u8; 4]; 4] = [
             [0x00,0x01,0x02,0x03],
@@ -240,7 +293,7 @@ mod tests {
             [0x30,0x01,0x67,0x2B],
             [0xFE,0xD7,0xAB,0x76]
         ];
-        assert_eq!(res,actual);     
+        assert_eq!(res, actual);     
     }
 
     #[test]
@@ -258,7 +311,7 @@ mod tests {
             [0x08,0x09,0x0A,0x0B],
             [0x0C,0x0D,0x0E,0x0F]
         ];
-        assert_eq!(res,actual);     
+        assert_eq!(res, actual);     
     }
 
     #[test]
@@ -276,7 +329,7 @@ mod tests {
             [11,12,9,10],
             [16,13,14,15]
         ];
-        assert_eq!(res,actual);
+        assert_eq!(res, actual);
     }
 
     #[test]
@@ -294,7 +347,7 @@ mod tests {
             [9,10,11,12],
             [13,14,15,16]
         ];
-        assert_eq!(res,actual);
+        assert_eq!(res, actual);
     }
 
     #[test]
@@ -312,7 +365,7 @@ mod tests {
             [0x70,0x58,0x01,0xC6],
             [0xBB,0x9D,0x01,0xC6]
         ];
-        assert_eq!(res,actual);
+        assert_eq!(res, actual);
     }
 
     #[test]
@@ -330,7 +383,7 @@ mod tests {
             [0xA2,0x22,0x01,0xC6],
             [0xF0,0x5C,0x01,0xC6]
         ];
-        assert_eq!(res,actual);
+        assert_eq!(res, actual);
     }
 
     #[test]
@@ -349,6 +402,6 @@ mod tests {
         ];
         add_round_key(&mut res, key);
         let actual: [[u8; 4]; 4] = [[0; 4]; 4];
-        assert_eq!(res,actual);
+        assert_eq!(res, actual);
     }
 }
