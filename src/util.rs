@@ -88,22 +88,22 @@ pub fn sub_word(word: u32) -> u32 {
     res
 }
 
-pub fn message_to_block(message: &str) -> [[u8; 4]; 4] {
+pub fn message_to_block(message: &[u8]) -> [[u8; 4]; 4] {
     let mut block: [[u8; 4]; 4] = [[0; 4]; 4];
     for j in 0..4 {
         for i in 0..4 {
-            block[i][j] = u8::from_str_radix(&message[(8*j+2*i)..(8*j+2*(i+1))], 16).unwrap();
+            block[i][j] = message[4*j+i]
         }
     }
 
     block
 }
 
-pub fn block_to_message(block: [[u8; 4]; 4]) -> String {
-    let mut message = String::with_capacity(32);
+pub fn block_to_message(block: [[u8; 4]; 4]) -> Vec<u8> {
+    let mut message = Vec::with_capacity(16);
     for j in 0..4 {
         for i in 0..4 {
-            message.push_str(&format!("{:02x}", block[i][j]));
+            message.push(block[i][j]);
         }
     }
 
@@ -147,13 +147,13 @@ mod tests {
 
     #[test]
     fn message_to_block_test() {
-        let s = "00010203040506070809101112131415";
-        let res = message_to_block(s);
+        let s = vec![0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F];
+        let res = message_to_block(&s);
         let actual: [[u8; 4]; 4] = [
-            [0x00,0x04,0x08,0x12],
-            [0x01,0x05,0x09,0x13],
-            [0x02,0x06,0x010,0x14],
-            [0x03,0x07,0x011,0x15]
+            [0x00,0x04,0x08,0xC],
+            [0x01,0x05,0x09,0xD],
+            [0x02,0x06,0x0A,0xE],
+            [0x03,0x07,0x0B,0xF]
         ];
         assert_eq!(res, actual)
     }
@@ -161,13 +161,13 @@ mod tests {
     #[test]
     fn block_to_message_test() {
         let block: [[u8; 4]; 4] = [
-            [0x00,0x04,0x08,0x12],
-            [0x01,0x05,0x09,0x13],
-            [0x02,0x06,0x010,0x14],
-            [0x03,0x07,0x011,0x15]
-        ]; 
+            [0x00,0x04,0x08,0xC],
+            [0x01,0x05,0x09,0xD],
+            [0x02,0x06,0x0A,0xE],
+            [0x03,0x07,0x0B,0xF]
+        ];
         let res = block_to_message(block);
-        let actual = "00010203040506070809101112131415";
+        let actual = vec![0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F];
         assert_eq!(res, actual)       
     }
 }

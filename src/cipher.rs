@@ -4,33 +4,33 @@ use crate::util::{block_to_message,message_to_block,rot_word,sub_word};
 use crate::util::{RCON,SBOX,INV_SBOX};
 
 #[allow(non_snake_case)]
-pub fn AES_encrypt(plain_text: String, key: [u32; 8]) -> String {
+pub fn AES_encrypt(plain_text: Vec<u8>, key: [u32; 8]) -> Vec<u8> {
     let plain_text = PKCS7_padding(plain_text);
-    let n = plain_text.len()/2;
+    let n = plain_text.len();
 
-    let mut cipher_text = String::with_capacity(2*n);
+    let mut cipher_text = Vec::with_capacity(n);
     for i in 0..n/16 {
-        let message = &plain_text[32*i..(32*(i+1))];
+        let message = &plain_text[16*i..(16*(i+1))];
         let message_block = message_to_block(message);
         let encrypted_block = AES_encrypt_block(message_block, key);
         let encrypted_text = block_to_message(encrypted_block);
-        cipher_text.push_str(&encrypted_text);
+        cipher_text.extend(encrypted_text);
     }
 
     cipher_text
 }
 
 #[allow(non_snake_case)]
-pub fn AES_decrypt(cipher_text: String, key: [u32; 8]) -> String {
-    let n = cipher_text.len()/2;
+pub fn AES_decrypt(cipher_text: Vec<u8>, key: [u32; 8]) -> Vec<u8> {
+    let n = cipher_text.len();
 
-    let mut plain_text = String::with_capacity(2*n);
+    let mut plain_text = Vec::with_capacity(n);
     for i in 0..n/16 {
-        let message = &cipher_text[32*i..(32*(i+1))];
+        let message = &cipher_text[16*i..(16*(i+1))];
         let message_block = message_to_block(message);
         let encrypted_block = AES_decrypt_block(message_block, key);
         let encrypted_text = block_to_message(encrypted_block);
-        plain_text.push_str(&encrypted_text);
+        plain_text.extend(encrypted_text);
     }
 
     PKCS7_unpadding(plain_text)
