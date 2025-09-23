@@ -5,16 +5,15 @@
 /// text - (I,REQ) - A string of hexadecimals where each digit is padded to length 2
 ///
 /// Returns:
-/// The unpadded text
+/// The padded text
 #[allow(non_snake_case)]
-pub fn PKCS7_padding(text: String) -> String {
-    let n = text.len()/2;
+pub fn PKCS7_padding(text: Vec<u8>) -> Vec<u8> {
+    let n = text.len();
     let padding = 16 - n % 16;
-    let pad_str = format!("{:02x}", padding);
-    let mut padded_string = String::with_capacity((n+padding)*2);
-    padded_string.push_str(&text);
+    let mut padded_string: Vec<u8> = Vec::with_capacity(n+padding);
+    padded_string.extend(text);
     for _ in 0..padding {
-        padded_string.push_str(&pad_str);
+        padded_string.push(padding as u8);
     }
 
     padded_string
@@ -29,11 +28,11 @@ pub fn PKCS7_padding(text: String) -> String {
 /// Returns:
 /// The unpadded text
 #[allow(non_snake_case)]
-pub fn PKCS7_unpadding(text: String) -> String {
+pub fn PKCS7_unpadding(text: Vec<u8>) -> Vec<u8> {
     let n = text.len();
-    let padding = usize::from_str_radix(&text[(n-2)..],16).unwrap();
+    let padding = text[n-1] as usize;
 
-    text[0..(n-padding*2)].to_string()
+    text[0..(n-padding)].to_vec()
 }
 
 #[cfg(test)]
@@ -43,28 +42,28 @@ mod tests {
     #[test]
     #[allow(non_snake_case)]
     fn PKCS7_padding_test() {
-        let s = String::from("003F24F5G2570592A45EEA");
+        let s = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA];
         let res = PKCS7_padding(s);
-        let actual = String::from("003F24F5G2570592A45EEA0505050505");
+        let actual = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05];
         assert_eq!(res, actual);
 
-        let s = String::from("003F24F5G2570592A45EEA0505050505");
+        let s = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05];
         let res = PKCS7_padding(s);
-        let actual = String::from("003F24F5G2570592A45EEA050505050510101010101010101010101010101010");
+        let actual = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10];
         assert_eq!(res, actual);
     }
 
     #[test]
     #[allow(non_snake_case)]
     fn PKCS7_unpadding_test() {
-        let s = String::from("003F24F5G2570592A45EEA0505050505");
+        let s = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05];
         let res = PKCS7_unpadding(s);
-        let actual = String::from("003F24F5G2570592A45EEA");
+        let actual = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA];
         assert_eq!(res, actual);
 
-        let s = String::from("003F24F5G2570592A45EEA050505050510101010101010101010101010101010");
+        let s = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10];
         let res = PKCS7_unpadding(s);
-        let actual = String::from("003F24F5G2570592A45EEA0505050505");
+        let actual = vec![0x00, 0x3F, 0x24, 0xF6, 0xD2, 0x57, 0x05, 0x92, 0xA4, 0x5E, 0xEA, 0x05, 0x05, 0x05, 0x05, 0x05];
         assert_eq!(res, actual);
     }
 }
