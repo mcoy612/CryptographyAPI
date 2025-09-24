@@ -1,7 +1,7 @@
 use rand::prelude::*;
 
 #[allow(dead_code)]
-fn get_salt_256() -> [u32; 8] {
+pub fn get_salt_256() -> [u32; 8] {
     let mut rng = rand::rng();
 
     let mut salt: [u32; 8] = [0; 8];
